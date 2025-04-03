@@ -1,1 +1,1 @@
-# learn mongodb
+# learn mongodb from wsl terminal

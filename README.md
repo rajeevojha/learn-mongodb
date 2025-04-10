@@ -43,4 +43,5 @@
      - another (better) options can be df = df.fillna(None)
    - existing mongodb database was dropped. =======> db.dropDatabase()
    - data reimported using mongoimport --db ...
+     > Kinda obvious, but don't run mongoimport from within mongosh. It is a bash command.
      > 9800 document(s) imported successfully. 0 document(s) failed to import.  

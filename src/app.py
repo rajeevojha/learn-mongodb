@@ -7,9 +7,27 @@ app = Flask(__name__)
 # MongoDB connection
 client = MongoClient("mongodb://localhost:27017/")
 db = client["superstore"]
-saless_collection = db["sales"]
+sales_collection = db["sales"]
 
-# Create a sales
+# basic route, just get the count of records
+@app.route("/",methods=["GET"])
+def get_count():
+    rec_count = sales_collection.count_documents({})
+    return jsonify({"message": f"Connected to superstore.sales with {rec_count} documents"})
+
+# find record given record id
+@app.route("/orders/<order_id>",methods=["GET"])
+def get_order(order_id):
+    if order_id:
+        order = sales_collection.find_one({"Order ID":order_id})
+        if order:
+             order["_id"] = str(order["_id"])
+             return jsonify(order)
+        return jsonify(jsonify({"error":"Order not found"})),404
+    order = sales_collection.find({},{_id:1,"Order ID":1})
+    return jsonify(str(order))
+
+# Create a sales record
 @app.route("/sales", methods=["POST"])
 def create_sales():
     data = request.json
@@ -36,15 +54,16 @@ def create_sales():
     result = saless_collection.insert_one(sales)
     return jsonify({"sales_id": str(result.inserted_id)}), 201
 
-# List saless
+# List sales
 @app.route("/sales", methods=["GET"])
-def get_saless():
+def get_sales():
     status = request.args.get("status")
     query = {"status": status} if status else {}
-    saless = list(saless_collection.find(query))
-    for sales in saless:
-        sales["_id"] = str(sales["_id"])  # Convert ObjectId to string
-    return jsonify(saless)
+    sales = list(sales_collection.find(query))
+    print("count of sales is:", len(sales))
+    for sale in sales:
+        sale["_id"] = str(sale["_id"])  # Convert ObjectId to string
+    return jsonify(sales)
 
 if __name__ == "__main__":
     app.run(debug=True)

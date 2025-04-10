@@ -40,6 +40,7 @@
 ## data cleanup
    - pandas was used to replace NaN with 0.
    - df['Postal Code'] = df['Postal Code'].fillna(0)
+     - another (better) options can be df = df.fillna(None)
    - existing mongodb database was dropped. =======> db.dropDatabase()
    - data reimported using mongoimport --db ...
      > 9800 document(s) imported successfully. 0 document(s) failed to import.  

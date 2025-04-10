@@ -5,7 +5,7 @@
 - use <dbname>                //* switch to the database
 - https://www.mongodb.com/docs/manual/crud/
 
-##CRUD
+## CRUD
   - insert one 
     db.collection.insertOne({"key":"value"})
   - inesrt many
@@ -25,3 +25,21 @@
          {age: {$lt:18}},           //find subject with age less than 18
          {$set:{status:"reject"}}   //change status to reject
          )
+## get some huge data for practice - source kaggle
+   > look for something like task app 
+   > use pandas /python to convert the file into JSON
+   > and then load into mongo.
+   > note we have mongo currently in wsl which we will leverage
+## convert Superstore Sales data (from kaggle) to json using python and pd
+   load json into mongodb
+   mongoimport --db superstore --collection sales --jsonArray --file ~/learn-mongodb/data/train.json
+## first attempt at import
+   - only 2000 records could be updated 
+   - the Due Date field had NaN for some records and mongo stopped import at the first error. 
+   - 2000 records were in the database and not 2233. This is because of default batchsize is 4mb data or 1000 records which ever comes first.
+## data cleanup
+   - pandas was used to replace NaN with 0.
+   - df['Postal Code'] = df['Postal Code'].fillna(0)
+   - existing mongodb database was dropped. =======> db.dropDatabase()
+   - data reimported using mongoimport --db ...
+     > 9800 document(s) imported successfully. 0 document(s) failed to import.  

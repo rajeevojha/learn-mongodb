@@ -1,3 +1,5 @@
+*.pem
+node_modules/
 terraform/.terraform
 *.backup
 *.log
@@ -6,4 +8,4 @@ terraform/terraform.tfstate.backup
 terraform/.terraform.lock.hcl
 .venv
 __pycache__
-data/.ipynb_checkpoints
+data/

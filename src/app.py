@@ -65,5 +65,58 @@ def get_sales():
         sale["_id"] = str(sale["_id"])  # Convert ObjectId to string
     return jsonify(sales)
 
+# reports
+@app.route("/reports/sales_by_category",methods=["GET"])
+def get_sales_by_category_report():
+    pipeline = [
+        {"$group":{"_id":"$Category","total_sales":{"$sum":"$Sales"}}},
+        {"$sort":{"total_sales":-1}}
+    ]
+    result = jsonify(list(sales_collection.aggregate(pipeline)))
+    return result
+
+@app.route("/reports/customer_avg_sales",methods=["GET"])
+def get_customer_avg_sales_report():
+    pipeline = [
+        {"$group": {"_id":"$Customer ID","avg_sales":{"$avg":"$Sales"}}},
+        {"$sort" : {"avg_sales": -1}},
+        {"$limit": 5}
+    ]
+    result = jsonify(list(sales_collection.aggregate(pipeline)))
+    return result
+
+
+@app.route("/reports/delayed_shipment_report",methods=["GET"])
+def get_delayed_shipment_report():
+    pipeline = [
+        {
+          "$project":{
+              "Order ID":1,
+              "Order Date": 1,
+              "Ship Date": 1,
+              "days_delayed": {
+                    "$divide": [
+                        {"$subtract": ["$Ship Date", "$Order Date"]},
+                        1000 * 60 * 60 * 24
+                    ]
+                }
+          }},
+          {"$match": {"days_delayed":{"$gt":7}}},
+          {"$sort" : {"days_delayed":-1}}
+        
+    ]
+    result = jsonify(list(sales_collection.aggregate(pipeline)))
+    return result
+
+@app.route("/reports/city_total_order_and_avg_sales/<city>",methods=["GET"])
+def get_city_order_count_and_avg_sales_report():
+    #TODO
+    pipeline = [
+        {"$match":{"City":city_}},
+        {"$sort":{"avg_sales":-1}}
+    ]
+    result = jsonify(list(sales_collection.aggregate(pipeline)))
+    return result
+
 if __name__ == "__main__":
     app.run(debug=True)

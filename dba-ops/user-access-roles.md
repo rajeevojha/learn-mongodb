@@ -5,7 +5,7 @@ This document contains examples and notes on:
 - Granting roles
 - Managing authentication
 
-## creating user
+## creating user - access to all databases
 - connect to the primary
 - connect to mongosh
 -  
@@ -22,4 +22,18 @@ db.createUser({
   ]
 })
 ```
+## creating user - access to a sales database
 
+>   ensure you log in using the newly minted dba-admin
+
+``` code
+    use sales
+    db.createUser({
+    user: "readonly-user",
+      pwd: "readonly-pass",
+      roles: [ { role: "read", db: "sales" } ]
+    })
+```
+> note: if the above code is saved in ~/scripts/createSalesUsers.js
+>        we can execute the same by issueing the below command
+>        mongosh ~/scripts/createSalesUsers.js

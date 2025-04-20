@@ -1,15 +1,3 @@
-# MongoDB DBA Operations – User & Access Roles
-
-This document contains examples and notes on:
-- Creating MongoDB users
-- Granting roles
-- Managing authentication
-
-## creating user
-- connect to the primary
-- connect to mongosh
--  
-``` code
 use admin
 db.createUser({
   user: "dba-admin",
@@ -21,5 +9,4 @@ db.createUser({
     { role: "clusterAdmin", db: "admin" }
   ]
 })
-```
 

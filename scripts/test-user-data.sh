@@ -1,8 +1,12 @@
 #!bin/bash
-    sed -i 's/bindIp: 0.0.0.0/bindIp: 90.0.0.0/' /etc/mongod.conf
+
+    f1 = "111"
+    f2 = "222"
+    echo "{$f1/999/$f2}"
+#    sed 's/bindIp: 0.0.0.0/bindIp: 90.0.0.0/' /etc/mongod.conf
 #   uncomment and update the security line, had to do in 2 steps
-    sed -i 's/^#security:/security:/' /etc/mongod.conf
-    sed -i '/^security:/a\  authorization: enabled' /etc/mongod.conf
+#    sed  's/^#security:/security:/' /etc/mongod.conf
+#    sed  '/^security:/a\  authorization: enabled' /etc/mongod.conf
 #   uncomment and update the replication; had to do in 2 steps
-    sed -i 's/^#replication:/replication:/' /etc/mongod.conf
-    sed -i '/^replication:/a\  replSetName: "rs0"' /etc/mongod.conf
+#    sed  's/^#replication:/replication:/' /etc/mongod.conf
+#    sed  '/^replication:/a\  replSetName: "rs0"' /etc/mongod.conf

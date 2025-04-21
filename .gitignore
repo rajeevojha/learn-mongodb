@@ -1,4 +1,7 @@
 *.pem
+*.swp
+*.bak
+mongodb-keyfile
 node_modules/
 terraform/.terraform
 *.backup

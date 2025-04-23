@@ -22,6 +22,17 @@ resource "aws_instance" "mongo_node" {
       host        = self.public_dns
     }
   }
+  provisioner "file" {
+    source      = "${path.module}/../scripts/create_users.js"
+    destination = "/tmp/create-users.js"
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file("~/.ssh/cloud9.pem")
+      host        = self.public_dns
+    }
+  }
+
 user_data = <<-EOF
   Content-Type: multipart/mixed; boundary="//"
   MIME-Version: 1.0
@@ -53,6 +64,11 @@ user_data = <<-EOF
      # Give the mongodb user ownership of the pki directory
        sudo chown mongodb:mongodb /etc/mongodb/pki/mongodb-keyfile.pem
        sudo chmod 0400 /etc/mongodb/pki/mongodb-keyfile.pem
+       sudo chmod 0755 /etc/mongodb
+    # Move the user creation script
+       sudo mv /tmp/create-users.js /etc/mongodb/create-users.js
+       sudo chown mongodb:ubuntu /etc/mongodb/create-users.js
+       sudo chmod 0440 /etc/mongodb/create-users.js  
   sudo systemctl enable mongod || { echo "systemctl enable failed"; exit 1; }
   sudo systemctl start mongod || { echo "mongod start failed"; exit 1; }
   sudo echo "user_data script completed" >> /var/log/user-data.log
@@ -86,7 +102,11 @@ resource "null_resource" "init_replica_set" {
       "export PATH=$PATH:/usr/bin",
       "until mongosh --host ${aws_instance.mongo_node[0].public_ip}:27017 --quiet --eval 'db.runCommand({ ping: 1 })' > /dev/null 2>&1; do echo 'Waiting for mongod...'; sleep 5; done",
       "mongosh --host ${aws_instance.mongo_node[0].public_ip}:27017 --quiet --eval 'rs.initiate({ _id: \"rs0\", members: [ {_id: 0, host: \"${aws_instance.mongo_node[0].public_ip}:27017\", priority: 2}, {_id: 1, host: \"${aws_instance.mongo_node[1].public_ip}:27017\", priority: 1}, {_id: 2, host: \"${aws_instance.mongo_node[2].public_ip}:27017\", arbiterOnly: true} ] })' || echo 'Replica set already initialized'",
-      "mongosh --host ${aws_instance.mongo_node[0].public_ip}:27017 --quiet --eval 'rs.status()'"
+      "mongosh --eval 'rs.status()'",
+      "echo 'step 1'",
+      "sleep 30",
+      "mongosh 'mongodb://${aws_instance.mongo_node[0].public_ip}:27017,${aws_instance.mongo_node[1].public_ip}:27017,${aws_instance.mongo_node[2].public_ip}:27017/admin?replicaSet=rs0' --quiet /etc/mongodb/create-users.js",
+      "mongosh 'mongodb://${aws_instance.mongo_node[0].public_ip}:27017,${aws_instance.mongo_node[1].public_ip}:27017,${aws_instance.mongo_node[2].public_ip}:27017/admin?replicaSet=rs0' --quiet --eval 'rs.status()'"
     ]
     connection {
       type        = "ssh"

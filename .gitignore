@@ -4,6 +4,7 @@
 mongodb-keyfile
 node_modules/
 terraform/.terraform
+terraform/.terraform/*.*
 *.backup
 *.log
 *.zip

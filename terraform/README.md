@@ -16,3 +16,7 @@ the uploads scp was running from the ec2 and not from my local machine, so the l
 One option could have been to upload the datafile along with other files we have been uploading, but that would be
 waste of resurce. Every failure, you will need to uplaod the huge datafile again . Huge mean 5 mb :D
 ``` 
+
+## 04252025 mongoimport 
+juggling between the quoted non quoted strings in shell scripts
+

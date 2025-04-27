@@ -11,5 +11,6 @@ terraform/.terraform/*.*
 terraform/terraform.tfstate.backup
 terraform/.terraform.lock.hcl
 .venv
+src/.ipynb_checkpoints/*.*
 __pycache__
 data/

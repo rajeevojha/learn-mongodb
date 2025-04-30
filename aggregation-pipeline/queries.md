@@ -200,4 +200,96 @@ useful in case no manipulation is requierd.
 ## FACET Examples
 - Running multiple pipelines in one go
 
+## some more queries match->group->project->sort
+``` 
+assume a collection as 
+  {
+  "_id": ObjectId("..."),
+  "region": "West",
+  "category": "Furniture",
+  "amount": 500,
+  "status": "Completed"
+}
+Find average sale amount per category, but only where amount > 100. Show category and avgSale (rounded). Sort by avgSale descending.
+db.sales.aggregate([
+  // 1. Filter only documents where amount > 100
+  { $match: { amount: { $gt: 100 } } },
 
+  // 2. Group by category, calculate average amount
+  {
+    $group: {
+      _id: "$category",
+      avgSale: { $avg: "$amount" }
+    }
+  },
+
+  // 3. Project category and rounded average sale
+  {
+    $project: {
+      category: "$_id",
+      avgSale: { $round: ["$avgSale", 0] },
+      _id: 0
+    }
+  },
+
+  // 4. Sort by average sale descending
+  { $sort: { avgSale: -1 } }
+])
+```
+> From the orders collection, write an aggregation that:
+> Filters only orders where total Sales is greater than 500.
+> Groups by Region, calculating total sales and average sales per region.
+> Projects the region name and rounded average sales.
+> Sorts the results by total sales (descending).
+```
+db.sales.aggregate([
+  { 
+    $match: { amount: { $gt: 100 } } 
+  },
+  { 
+    $group: { 
+      _id: "$region",
+      totalSale: { $sum: "$amount" },
+      avgSale: { $avg: "$amount" }
+    } 
+  },
+  { 
+    $project: { 
+      _id: 0,
+      region: "$_id",
+      totalSale: 1,
+      avgSale: { $round: ["$avgSale", 0] }
+    } 
+  },
+  { 
+    $sort: { totalSale: -1 } 
+  }
+])
+```
+> Write an aggregation on the sales collection to show, for each category:
+> - Total number of sales (call it numSales)
+> - Average amount (rounded to 2 decimal places)
+> - Only include sales where amount > 50
+> - Sort by numSales in descending order
+```
+db.sales.aggregate([
+{ $match: {amount: {$gt:50}}
+},
+{ 
+  $group:{
+    _id:"$category",
+    numSales:{$sum:1},
+    avgAmt: {$avg:"$amount"}
+  }
+},
+{
+ $project:{
+   _id: 0,
+   category: "$_id",
+   numSales:1,
+   avgAmt:{$round:["$avgAmt",2]}
+  }
+},
+{$sort: {numSales:-1}}
+])
+```

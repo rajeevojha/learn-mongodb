@@ -476,3 +476,39 @@ db.sales.aggregate([
   }
 ]);
 ```
+## Groups on nested arrays
+> {
+>   _id: 1,
+>   region: "East",
+>   items: [
+>     { product: "Pencil", qty: 10, price: 1 },
+>     { product: "Eraser", qty: 5, price: 2 }
+>   ]
+> }
+
+Goal: Compute total quantity sold per product across all documents.
+```
+db.sales.aggregate([
+  {
+    $unwind: $items,
+  },
+  { $group: { _id: "$items.product", qtySold: { $sum: "$item.qty" } } },
+]);
+```
+## example 2. Groups on nested field. Note - multiply is not allowed inside groups unless part of a sum
+ 
+Write a query to calculate total revenue per product.
+Hint: multiply qty * price inside $group.
+
+db.sales.aggregate([
+  {
+    $unwind: $items,
+  },
+  {
+    $group: {
+      _id: "$items.product",
+      totalRev: { $sum: { $multiply: ["$items.qty", "$items.price"] } },
+    },
+  },
+]);
+

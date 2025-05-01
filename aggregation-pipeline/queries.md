@@ -293,3 +293,186 @@ db.sales.aggregate([
 {$sort: {numSales:-1}}
 ])
 ```
+
+{
+  _id: ObjectId(...),
+  region: "East",
+  product: "Notebook",
+  amount: 120
+}
+
+## Find Top-Selling Product per Region
+> Expected output in following format.
+> {
+>   region: "East",
+>   topProduct: "Notebook",
+>   totalSales: 9000
+> }
+```
+db.sales.aggregate([
+  {
+    $group: {
+      _id: { region: "$region", product: "$product" },
+      totalSales: { $sum: "$amount" }
+    }
+  },
+  { $sort: { "_id.region": 1, totalSales: -1 } },
+  {
+    $group: {
+      _id: "$_id.region",
+      topProduct: { $first: "$_id.product" },
+      totalSales: { $first: "$totalSales" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      region: "$_id",
+      topProduct: 1,
+      totalSales: 1
+    }
+  }
+])
+```
+## some facet practice next
+> consider the following document structure
+>  {
+>  _id: 1,
+>  name: "Phone",
+>  category: "Electronics",
+>  price: 799,
+>  rating: 4.5
+> }
+  Return bucketed price info, rating stats and category breakouts
+```
+db.product.aggregate([
+  {
+    $facet: {
+      priceBucket: [
+        {
+          $bucket: {
+            groupBy: "$price",
+            boundaries: [0, 50, 100, 150, 200, 250, 300],
+            default: "Other",
+            output: {
+              count: { $sum: 1 },
+              avgPrice: { $avg: "$price" },
+              minPrice: { $min: "$price" },
+              maxPrice: { $max: "$price" },
+            },
+          },
+        },
+      ],
+      ratingStats: [
+        {
+          $group: {
+            _id: null,
+            avgRating: { $avg: "$rating" },
+            minRating: { $min: "$rating" },
+            maxRating: { $max: "$rating" },
+          },
+        },
+      ],
+      categoryCount: [
+        {
+          $group: {
+            _id: "$category",
+            count: { $sum: 1 },
+          },
+        },
+      ],
+    },
+  },
+]);
+```
+## facet example 2
+> Write a $facet query on a sales collection to return:
+> Total sales per region
+> Top 3 products by quantity sold
+ 
+
+
+``` 
+db.sales.aggregate([
+  {
+    $facet: {
+      salesPerRegion: [
+        { $group: { _id: "$region", salesPerReg: { $sum: "$amount" } } },
+      ],
+      top3Products: [
+        { $group: { _id: "$product", totalSales: { $sum: "$amount" } } },
+        { $sort: { totalSales: -1 } },
+        { $limit: 3 },
+      ],
+    },
+  },
+]);
+
+```
+# conditional switch case 
+{
+  "_id": ObjectId("..."),
+  "region": "East",
+  "product": "iPhone",
+  "amount": 1200,
+  "customer": {
+    "name": "John Doe",
+    "tier": "Gold"
+  }
+}
+
+> Create a new field called tierStatus with the following logic:
+> If the customer's tier is "Gold" → return "Premium"
+> If it's "Silver" → return "Standard"
+> If it's missing or anything else → return "Basic"
+ 
+```
+db.orders.aggregate([
+  {
+    $project: {
+      _id: 0,
+      product: 1,
+      tierStatus: {
+        $switch: {
+          $branches: [
+            { case: { $eq: ["$customer.tier", "Gold"] }, then: "Premium" },
+            { case: { $eq: ["$customer.tier", "Silver"] }, then: "Standard" },
+          ],
+          default: "Basic",
+        },
+      },
+    },
+  },
+]);
+```
+## another example for switch
+Write an aggregation query that:
+
+> Projects product, amount, and a new field called discountRate.
+> Based on the customer tier:
+> "Gold" → 20%
+> "Silver" → 10%
+> "Bronze" → 5%
+> Missing or any other → 0%
+> Return the discount as a number: 0.2, 0.1, 0.05, or 0.0.
+```
+db.sales.aggregate([
+  {
+    $project: {
+      _id: 0,
+      product: 1,
+      amount: 1,
+      discountRate: {
+        $switch: {
+          branches: [
+            { case: { $eq: ["$customer.tier", "Gold"] }, then: 0.2 },
+            { case: { $eq: ["$customer.tier", "Silver"] }, then: 0.1 },
+            { case: { $eq: ["$customer.tier", "Bronze"] }, then: 0.05 }
+          ],
+          default: 0.0
+        }
+      }
+    }
+  }
+]);
+```

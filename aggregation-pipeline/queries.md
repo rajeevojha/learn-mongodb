@@ -438,7 +438,7 @@ db.orders.aggregate([
             { case: { $eq: ["$customer.tier", "Gold"] }, then: "Premium" },
             { case: { $eq: ["$customer.tier", "Silver"] }, then: "Standard" },
           ],
-          default: "Basic",
+          default: "Basic"
         },
       },
     },
